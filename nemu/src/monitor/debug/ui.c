@@ -36,6 +36,83 @@ static int cmd_q(char *args) {
   return -1;
 }
 
+static int cmd_p(char *args) {
+  if (args == NULL) {
+    printf("Usage: p EXPR\n");
+    return 0;
+  }
+
+  bool success = true;
+  uint32_t result = expr(args, &success);
+  if (!success) {
+    printf("Invalid expression\n");
+    return 0;
+  }
+
+  printf("0x%08x (%u)\n", result, result);
+  return 0;
+}
+
+static int cmd_w(char *args) {
+  if (args == NULL) {
+    printf("Usage: w EXPR\n");
+    return 0;
+  }
+
+  bool success = true;
+  uint32_t val = expr(args, &success);
+  if (!success) {
+    printf("Invalid expression\n");
+    return 0;
+  }
+
+  WP *wp = new_wp();
+  strncpy(wp->expr, args, sizeof(wp->expr) - 1);
+  wp->expr[sizeof(wp->expr) - 1] = '\0';
+  wp->old_val = val;
+  wp->enabled = true;
+  printf("Watchpoint %d: %s = 0x%08x\n", wp->NO, wp->expr, wp->old_val);
+  return 0;
+}
+
+static int cmd_d(char *args) {
+  if (args == NULL) {
+    printf("Usage: d N\n");
+    return 0;
+  }
+
+  int no = atoi(args);
+  for (WP *p = get_wp_head(); p != NULL; p = p->next) {
+    if (p->NO == no) {
+      free_wp(p);
+      return 0;
+    }
+  }
+
+  printf("No watchpoint number %d\n", no);
+  return 0;
+}
+
+static int cmd_info(char *args) {
+  if (args == NULL) {
+    return 0;
+  }
+
+  if (strcmp(args, "r") == 0) {
+    for (int i = 0; i < 8; i ++) {
+      printf("%s\t0x%08x\n", regsl[i], reg_l(i));
+    }
+    printf("eip\t0x%08x\n", cpu.eip);
+  }
+  else if (strcmp(args, "w") == 0) {
+    for (WP *p = get_wp_head(); p != NULL; p = p->next) {
+      printf("%d: %s = 0x%08x\n", p->NO, p->expr, p->old_val);
+    }
+  }
+
+  return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -45,7 +122,11 @@ static struct {
 } cmd_table [] = {
   { "help", "Display informations about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
+  { "d", "Delete watchpoint: d N", cmd_d },
+  { "info", "Show info: info r | info w", cmd_info },
+  { "p", "Evaluate expression: p EXPR", cmd_p },
   { "q", "Exit NEMU", cmd_q },
+  { "w", "Set watchpoint: w EXPR", cmd_w },
 
   /* TODO: Add more commands */
 
