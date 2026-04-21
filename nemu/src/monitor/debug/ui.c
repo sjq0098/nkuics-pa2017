@@ -9,6 +9,18 @@
 
 void cpu_exec(uint64_t);
 
+static char *skip_spaces(char *s) {
+  if (s == NULL) {
+    return NULL;
+  }
+
+  while (*s == ' ') {
+    s ++;
+  }
+
+  return *s == '\0' ? NULL : s;
+}
+
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 char* rl_gets() {
   static char *line_read = NULL;
@@ -36,7 +48,25 @@ static int cmd_q(char *args) {
   return -1;
 }
 
+static int cmd_si(char *args) {
+  uint64_t n = 1;
+
+  args = skip_spaces(args);
+  if (args != NULL) {
+    char *endptr = NULL;
+    n = strtoull(args, &endptr, 10);
+    if (endptr == args || skip_spaces(endptr) != NULL) {
+      printf("Usage: si [N]\n");
+      return 0;
+    }
+  }
+
+  cpu_exec(n);
+  return 0;
+}
+
 static int cmd_p(char *args) {
+  args = skip_spaces(args);
   if (args == NULL) {
     printf("Usage: p EXPR\n");
     return 0;
@@ -53,7 +83,45 @@ static int cmd_p(char *args) {
   return 0;
 }
 
+static int cmd_x(char *args) {
+  args = skip_spaces(args);
+  if (args == NULL) {
+    printf("Usage: x N EXPR\n");
+    return 0;
+  }
+
+  char *n_str = strtok(args, " ");
+  char *expr_str = skip_spaces(args + strlen(n_str) + 1);
+  if (expr_str == NULL) {
+    printf("Usage: x N EXPR\n");
+    return 0;
+  }
+
+  char *endptr = NULL;
+  unsigned long n = strtoul(n_str, &endptr, 10);
+  if (endptr == n_str || skip_spaces(endptr) != NULL) {
+    printf("Usage: x N EXPR\n");
+    return 0;
+  }
+
+  bool success = true;
+  uint32_t addr = expr(expr_str, &success);
+  if (!success) {
+    printf("Invalid expression\n");
+    return 0;
+  }
+
+  for (unsigned long i = 0; i < n; i ++) {
+    uint32_t cur_addr = addr + i * 4;
+    uint32_t data = vaddr_read(cur_addr, 4);
+    printf("0x%08x: 0x%08x\n", cur_addr, data);
+  }
+
+  return 0;
+}
+
 static int cmd_w(char *args) {
+  args = skip_spaces(args);
   if (args == NULL) {
     printf("Usage: w EXPR\n");
     return 0;
@@ -76,6 +144,7 @@ static int cmd_w(char *args) {
 }
 
 static int cmd_d(char *args) {
+  args = skip_spaces(args);
   if (args == NULL) {
     printf("Usage: d N\n");
     return 0;
@@ -126,7 +195,9 @@ static struct {
   { "info", "Show info: info r | info w", cmd_info },
   { "p", "Evaluate expression: p EXPR", cmd_p },
   { "q", "Exit NEMU", cmd_q },
+  { "si", "Step through program: si [N]", cmd_si },
   { "w", "Set watchpoint: w EXPR", cmd_w },
+  { "x", "Examine memory: x N EXPR", cmd_x },
 
   /* TODO: Add more commands */
 
