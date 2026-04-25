@@ -32,13 +32,12 @@ static inline make_DopHelper(SI) {
 
   op->type = OP_TYPE_IMM;
 
-  /* TODO: Use instr_fetch() to read `op->width' bytes of memory
-   * pointed by `eip'. Interpret the result as a signed immediate,
-   * and assign it to op->simm.
-   *
-   op->simm = ???
-   */
-  TODO();
+  if (op->width == 1) {
+    op->simm = (int8_t)instr_fetch(eip, 1);
+  }
+  else {
+    op->simm = (int32_t)instr_fetch(eip, 4);
+  }
 
   rtl_li(&op->val, op->simm);
 
@@ -267,7 +266,9 @@ make_DHelper(J) {
 }
 
 make_DHelper(push_SI) {
+  id_dest->width = 1;
   decode_op_SI(eip, id_dest, true);
+  id_dest->width = decoding.is_operand_size_16 ? 2 : 4;
 }
 
 make_DHelper(in_I2a) {
