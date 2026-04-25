@@ -39,5 +39,13 @@ void reg_test() {
   assert(sample[R_ESI] == cpu.esi);
   assert(sample[R_EDI] == cpu.edi);
 
+  assert(sizeof(cpu.eflags) == 4);
+  cpu.eflags.val = 0;
+  cpu.eflags.CF = 1;
+  assert(cpu.eflags.val == 0x1);
+  cpu.eflags.val = 0;
+  cpu.eflags.OF = 1;
+  assert(cpu.eflags.val == 0x800);
+
   assert(eip_sample == cpu.eip);
 }
