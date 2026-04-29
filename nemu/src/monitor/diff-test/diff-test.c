@@ -17,6 +17,8 @@ void gdb_exit(void);
 static bool is_skip_qemu;
 static bool is_skip_nemu;
 
+#define DIFFTEST_EFLAGS_MASK 0x00000ac3
+
 void diff_test_skip_qemu() { is_skip_qemu = true; }
 void diff_test_skip_nemu() { is_skip_nemu = true; }
 
@@ -122,6 +124,7 @@ void init_qemu_reg() {
   union gdb_regs r;
   gdb_getregs(&r);
   regcpy_from_nemu(r);
+  r.eflags = cpu.eflags.val;
   bool ok = gdb_setregs(&r);
   assert(ok == 1);
 }
@@ -149,7 +152,20 @@ void difftest_step(uint32_t eip) {
 
   // TODO: Check the registers state with QEMU.
   // Set `diff` as `true` if they are not the same.
-  TODO();
+  if (r.eax != cpu.eax) { Log("eax is different after executing instruction at eip = 0x%08x, right = 0x%08x, wrong = 0x%08x", eip, r.eax, cpu.eax); diff = true; }
+  if (r.ecx != cpu.ecx) { Log("ecx is different after executing instruction at eip = 0x%08x, right = 0x%08x, wrong = 0x%08x", eip, r.ecx, cpu.ecx); diff = true; }
+  if (r.edx != cpu.edx) { Log("edx is different after executing instruction at eip = 0x%08x, right = 0x%08x, wrong = 0x%08x", eip, r.edx, cpu.edx); diff = true; }
+  if (r.ebx != cpu.ebx) { Log("ebx is different after executing instruction at eip = 0x%08x, right = 0x%08x, wrong = 0x%08x", eip, r.ebx, cpu.ebx); diff = true; }
+  if (r.esp != cpu.esp) { Log("esp is different after executing instruction at eip = 0x%08x, right = 0x%08x, wrong = 0x%08x", eip, r.esp, cpu.esp); diff = true; }
+  if (r.ebp != cpu.ebp) { Log("ebp is different after executing instruction at eip = 0x%08x, right = 0x%08x, wrong = 0x%08x", eip, r.ebp, cpu.ebp); diff = true; }
+  if (r.esi != cpu.esi) { Log("esi is different after executing instruction at eip = 0x%08x, right = 0x%08x, wrong = 0x%08x", eip, r.esi, cpu.esi); diff = true; }
+  if (r.edi != cpu.edi) { Log("edi is different after executing instruction at eip = 0x%08x, right = 0x%08x, wrong = 0x%08x", eip, r.edi, cpu.edi); diff = true; }
+  if (r.eip != cpu.eip) { Log("eip is different after executing instruction at eip = 0x%08x, right = 0x%08x, wrong = 0x%08x", eip, r.eip, cpu.eip); diff = true; }
+  if ((r.eflags & DIFFTEST_EFLAGS_MASK) != (cpu.eflags.val & DIFFTEST_EFLAGS_MASK)) {
+    Log("eflags is different after executing instruction at eip = 0x%08x, right = 0x%08x, wrong = 0x%08x",
+        eip, r.eflags & DIFFTEST_EFLAGS_MASK, cpu.eflags.val & DIFFTEST_EFLAGS_MASK);
+    diff = true;
+  }
 
   if (diff) {
     nemu_state = NEMU_END;
