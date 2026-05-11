@@ -4,5 +4,6 @@
 typedef __SIZE_TYPE__ size_t;
 typedef __PTRDIFF_TYPE__ ssize_t;
 typedef __PTRDIFF_TYPE__ ptrdiff_t;
+typedef long off_t;
 
 #endif
