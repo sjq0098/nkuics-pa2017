@@ -29,7 +29,21 @@ int _write(int fd, void *buf, size_t count){
   return _syscall_(SYS_write, fd, (uintptr_t)buf, count);
 }
 
+extern char _end;
+
 void *_sbrk(intptr_t increment){
+  static uintptr_t program_break = 0;
+  if (program_break == 0) {
+    program_break = (uintptr_t)&_end;
+  }
+
+  uintptr_t old_break = program_break;
+  uintptr_t new_break = program_break + increment;
+  if (_syscall_(SYS_brk, new_break, 0, 0) == 0) {
+    program_break = new_break;
+    return (void *)old_break;
+  }
+
   return (void *)-1;
 }
 
