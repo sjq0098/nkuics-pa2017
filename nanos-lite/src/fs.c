@@ -1,6 +1,7 @@
 #include "fs.h"
 
 void ramdisk_read(void *buf, off_t offset, size_t len);
+void ramdisk_write(const void *buf, off_t offset, size_t len);
 
 typedef struct {
   char *name;
@@ -53,6 +54,46 @@ ssize_t fs_read(int fd, void *buf, size_t len) {
   ramdisk_read(buf, file->disk_offset + file->open_offset, read_len);
   file->open_offset += read_len;
   return read_len;
+}
+
+ssize_t fs_write(int fd, const void *buf, size_t len) {
+  assert(fd >= 0 && fd < NR_FILES);
+
+  if (fd == FD_STDOUT || fd == FD_STDERR) {
+    const char *p = buf;
+    for (size_t i = 0; i < len; i ++) {
+      _putc(p[i]);
+    }
+    return len;
+  }
+
+  assert(fd >= FD_NORMAL);
+
+  Finfo *file = &file_table[fd];
+  size_t remain = file->size - file->open_offset;
+  size_t write_len = len < remain ? len : remain;
+
+  ramdisk_write(buf, file->disk_offset + file->open_offset, write_len);
+  file->open_offset += write_len;
+  return write_len;
+}
+
+off_t fs_lseek(int fd, off_t offset, int whence) {
+  assert(fd >= 0 && fd < NR_FILES);
+
+  Finfo *file = &file_table[fd];
+  off_t base = 0;
+  switch (whence) {
+    case SEEK_SET: base = 0; break;
+    case SEEK_CUR: base = file->open_offset; break;
+    case SEEK_END: base = file->size; break;
+    default: panic("Invalid whence = %d", whence);
+  }
+
+  off_t new_offset = base + offset;
+  assert(new_offset >= 0 && new_offset <= (off_t)file->size);
+  file->open_offset = new_offset;
+  return new_offset;
 }
 
 int fs_close(int fd) {
