@@ -9,7 +9,7 @@ void init_ramdisk(void);
 void init_device(void);
 void init_irq(void);
 void init_fs(void);
-uint32_t loader(_Protect *, const char *);
+uintptr_t loader(_Protect *, const char *);
 
 int main() {
 #ifdef HAS_PTE
@@ -30,7 +30,7 @@ int main() {
 
   init_fs();
 
-  uint32_t entry = loader(NULL, NULL);
+  uintptr_t entry = loader(NULL, "/bin/hello");
   ((void (*)(void))entry)();
 
   panic("Should not reach here");
