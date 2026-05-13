@@ -49,6 +49,16 @@ void fb_write(const void *buf, off_t offset, size_t len) {
   const uint32_t *pixels = buf;
   int n = len / sizeof(uint32_t);
 
+  if (x == 0) {
+    int rows = n / _screen.width;
+    int rem  = n % _screen.width;
+    if (rows > 0) {
+      _draw_rect(pixels, 0, y, _screen.width, rows);
+      pixels += rows * _screen.width;
+      y += rows;
+      n = rem;
+    }
+  }
   while (n > 0) {
     int cols = _screen.width - x;
     if (cols > n) cols = n;
