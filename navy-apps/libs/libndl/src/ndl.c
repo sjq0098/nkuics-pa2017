@@ -92,11 +92,13 @@ int NDL_WaitEvent(NDL_Event *event) {
   char buf[256], *p = buf, ch;
 
   while (1) {
+    p = buf;
     while ((ch = getc(evtdev)) != -1) {
       *p ++ = ch;
-      assert(p - buf < sizeof(buf));
+      assert(p - buf < (int)sizeof(buf));
       if (ch == '\n') break;
     }
+    if (p == buf) continue;
 
     if (buf[0] == 'k') {
       char keyname[32];
@@ -131,7 +133,9 @@ static void get_display_info() {
   screen_w = screen_h = 0;
   char buf[128], key[128], value[128], *delim;
   while (fgets(buf, 128, dispinfo)) {
-    *(delim = strchr(buf, ':')) = '\0';
+    delim = strchr(buf, ':');
+    if (!delim) continue;
+    *delim = '\0';
     sscanf(buf, "%s", key);
     sscanf(delim + 1, "%s", value);
     if (strcmp(key, "WIDTH") == 0) sscanf(value, "%d", &screen_w);

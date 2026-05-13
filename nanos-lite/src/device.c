@@ -38,6 +38,10 @@ void dispinfo_read(void *buf, off_t offset, size_t len) {
   memcpy(buf, dispinfo + offset, len);
 }
 
+size_t dispinfo_size(void) {
+  return strlen(dispinfo);
+}
+
 void fb_write(const void *buf, off_t offset, size_t len) {
   int start_pixel = offset / sizeof(uint32_t);
   int x = start_pixel % _screen.width;

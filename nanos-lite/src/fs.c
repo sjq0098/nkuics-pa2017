@@ -4,6 +4,7 @@ void ramdisk_read(void *buf, off_t offset, size_t len);
 void ramdisk_write(const void *buf, off_t offset, size_t len);
 size_t events_read(void *buf, size_t len);
 void dispinfo_read(void *buf, off_t offset, size_t len);
+size_t dispinfo_size(void);
 void fb_write(const void *buf, off_t offset, size_t len);
 
 typedef struct {
@@ -30,6 +31,7 @@ static Finfo file_table[] __attribute__((used)) = {
 
 void init_fs() {
   file_table[FD_FB].size = _screen.width * _screen.height * sizeof(uint32_t);
+  file_table[FD_DISPINFO].size = dispinfo_size();
 }
 
 int fs_open(const char *pathname, int flags, int mode) {
