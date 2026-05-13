@@ -59,7 +59,6 @@ void device_update() {
                         if (event.key.repeat == 0) {
                           uint8_t k = event.key.keysym.scancode;
                           bool is_keydown = (event.key.type == SDL_KEYDOWN);
-                          Log("SDL key %s: scancode = %u", is_keydown ? "down" : "up", k);
                           send_key(k, is_keydown);
                           break;
                         }
