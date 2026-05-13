@@ -17,11 +17,12 @@ size_t events_read(void *buf, size_t len) {
     if (key != _KEY_NONE) {
       int down = key & 0x8000;
       key &= ~0x8000;
-      evlen = snprintf(evbuf, sizeof(evbuf), "%s %s\n",
-                       down ? "kd" : "ku", keyname[key]);
+      snprintf(evbuf, sizeof(evbuf), "%s %s\n",
+               down ? "kd" : "ku", keyname[key]);
     } else {
-      evlen = snprintf(evbuf, sizeof(evbuf), "t %u\n", (unsigned)_uptime());
+      snprintf(evbuf, sizeof(evbuf), "t %u\n", (unsigned)_uptime());
     }
+    evlen = strlen(evbuf);
     evpos = 0;
   }
 

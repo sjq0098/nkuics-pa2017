@@ -56,17 +56,7 @@ ssize_t fs_read(int fd, void *buf, size_t len) {
     return 0;
 
   if (fd == FD_EVENTS)
-  {
-    static int event_read_log = 0;
-    ssize_t ret = events_read(buf, len);
-    if (event_read_log < 16) {
-      unsigned char *p = buf;
-      Log("fs_read /dev/events len=%u ret=%d bytes=%02x %02x %02x %02x",
-          len, ret, p[0], p[1], p[2], p[3]);
-      event_read_log ++;
-    }
-    return ret;
-  }
+    return events_read(buf, len);
 
   Finfo *file = &file_table[fd];
 
