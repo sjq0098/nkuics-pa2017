@@ -62,6 +62,8 @@ __smakebuf (fp)
 #else
       size = BUFSIZ;
 #endif
+      if (couldbetty)
+        size = 1;
       /*
        * Optimize fseek() only if it is a regular file.
        * (The test for __sseek is mainly paranoia.)
