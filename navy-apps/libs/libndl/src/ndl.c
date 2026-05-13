@@ -3,10 +3,12 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 static int has_nwm = 0;
 static uint32_t *canvas;
 static FILE *fbdev, *evtdev;
+static int fbfd = -1;
 
 static void get_display_info();
 static int canvas_w, canvas_h, screen_w, screen_h, pad_x, pad_y;
@@ -37,6 +39,7 @@ int NDL_OpenDisplay(int w, int h) {
     pad_x = (screen_w - canvas_w) / 2;
     pad_y = (screen_h - canvas_h) / 2;
     fbdev = fopen("/dev/fb", "w"); assert(fbdev);
+    fbfd = fbdev->_file;
     evtdev = fopen("/dev/events", "r"); assert(evtdev);
   }
 }
@@ -72,15 +75,16 @@ int NDL_Render() {
     fflush(stdout);
   } else {
     if (pad_x == 0) {
-      fseek(fbdev, pad_y * screen_w * sizeof(uint32_t), SEEK_SET);
-      fwrite(canvas, sizeof(uint32_t), canvas_w * canvas_h, fbdev);
+      off_t off = (off_t)(pad_y * screen_w) * sizeof(uint32_t);
+      lseek(fbfd, off, SEEK_SET);
+      write(fbfd, canvas, (size_t)(canvas_w * canvas_h) * sizeof(uint32_t));
     } else {
       for (int i = 0; i < canvas_h; i ++) {
-        fseek(fbdev, ((i + pad_y) * screen_w + pad_x) * sizeof(uint32_t), SEEK_SET);
-        fwrite(&canvas[i * canvas_w], sizeof(uint32_t), canvas_w, fbdev);
+        off_t off = (off_t)((i + pad_y) * screen_w + pad_x) * sizeof(uint32_t);
+        lseek(fbfd, off, SEEK_SET);
+        write(fbfd, &canvas[i * canvas_w], (size_t)canvas_w * sizeof(uint32_t));
       }
     }
-    fflush(fbdev);
   }
 }
 
