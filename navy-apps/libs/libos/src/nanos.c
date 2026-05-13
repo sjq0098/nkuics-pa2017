@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include <assert.h>
 #include <time.h>
+#include <string.h>
 #include "syscall.h"
 
 // TODO: discuss with syscall interface
@@ -64,6 +65,9 @@ off_t _lseek(int fd, off_t offset, int whence) {
 
 // not implement but used
 int _fstat(int fd, struct stat *buf) {
+  memset(buf, 0, sizeof(*buf));
+  buf->st_mode = (fd >= 0 && fd <= 5) ? _IFCHR : _IFREG;
+  buf->st_blksize = 1024;
   return 0;
 }
 
