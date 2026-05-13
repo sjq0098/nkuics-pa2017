@@ -2,6 +2,9 @@
 
 void ramdisk_read(void *buf, off_t offset, size_t len);
 void ramdisk_write(const void *buf, off_t offset, size_t len);
+size_t events_read(void *buf, size_t len);
+void dispinfo_read(void *buf, off_t offset, size_t len);
+void fb_write(const void *buf, off_t offset, size_t len);
 
 typedef struct {
   char *name;
@@ -26,7 +29,7 @@ static Finfo file_table[] __attribute__((used)) = {
 #define NR_FILES (sizeof(file_table) / sizeof(file_table[0]))
 
 void init_fs() {
-  // TODO: initialize the size of /dev/fb
+  file_table[FD_FB].size = _screen.width * _screen.height * sizeof(uint32_t);
 }
 
 int fs_open(const char *pathname, int flags, int mode) {
@@ -45,12 +48,27 @@ int fs_open(const char *pathname, int flags, int mode) {
 }
 
 ssize_t fs_read(int fd, void *buf, size_t len) {
-  assert(fd >= FD_NORMAL && fd < NR_FILES);
+  assert(fd >= 0 && fd < NR_FILES);
+
+  if (fd == FD_STDIN || fd == FD_STDOUT || fd == FD_STDERR)
+    return 0;
+
+  if (fd == FD_EVENTS)
+    return events_read(buf, len);
 
   Finfo *file = &file_table[fd];
+
+  if (fd == FD_DISPINFO) {
+    size_t remain = file->size - file->open_offset;
+    size_t read_len = len < remain ? len : remain;
+    dispinfo_read(buf, file->open_offset, read_len);
+    file->open_offset += read_len;
+    return read_len;
+  }
+
+  assert(fd >= FD_NORMAL);
   size_t remain = file->size - file->open_offset;
   size_t read_len = len < remain ? len : remain;
-
   ramdisk_read(buf, file->disk_offset + file->open_offset, read_len);
   file->open_offset += read_len;
   return read_len;
@@ -61,18 +79,20 @@ ssize_t fs_write(int fd, const void *buf, size_t len) {
 
   if (fd == FD_STDOUT || fd == FD_STDERR) {
     const char *p = buf;
-    for (size_t i = 0; i < len; i ++) {
-      _putc(p[i]);
-    }
+    for (size_t i = 0; i < len; i ++) _putc(p[i]);
+    return len;
+  }
+
+  if (fd == FD_FB) {
+    fb_write(buf, file_table[fd].open_offset, len);
+    file_table[fd].open_offset += len;
     return len;
   }
 
   assert(fd >= FD_NORMAL);
-
   Finfo *file = &file_table[fd];
   size_t remain = file->size - file->open_offset;
   size_t write_len = len < remain ? len : remain;
-
   ramdisk_write(buf, file->disk_offset + file->open_offset, write_len);
   file->open_offset += write_len;
   return write_len;
