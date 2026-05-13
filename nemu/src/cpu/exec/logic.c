@@ -107,3 +107,18 @@ make_EHelper(not) {
 
   print_asm_template1(not);
 }
+
+make_EHelper(bsr) {
+  if (id_src->val == 0) {
+    t0 = 1;
+    rtl_set_ZF(&t0);
+  } else {
+    t0 = 0;
+    rtl_set_ZF(&t0);
+    t1 = id_src->val;
+    t0 = 0;
+    while (t1 >>= 1) t0++;
+    operand_write(id_dest, &t0);
+  }
+  print_asm_template2(bsr);
+}
