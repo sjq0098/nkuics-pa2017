@@ -68,6 +68,14 @@ int _fstat(int fd, struct stat *buf) {
   memset(buf, 0, sizeof(*buf));
   buf->st_mode = (fd == 4) ? _IFCHR : _IFREG;
   buf->st_blksize = 1024;
+  if (buf->st_mode == _IFREG) {
+    off_t cur = _lseek(fd, 0, SEEK_CUR);
+    off_t end = _lseek(fd, 0, SEEK_END);
+    if (cur >= 0 && end >= 0) {
+      buf->st_size = end;
+      _lseek(fd, cur, SEEK_SET);
+    }
+  }
   return 0;
 }
 
