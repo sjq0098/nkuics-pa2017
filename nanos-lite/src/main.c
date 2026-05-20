@@ -30,7 +30,7 @@ int main() {
 
   init_fs();
 
-  uintptr_t entry = loader(NULL, "/bin/events");
+  uintptr_t entry = loader(NULL, "/bin/pal");
   ((void (*)(void))entry)();
 
   panic("Should not reach here");
