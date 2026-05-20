@@ -66,6 +66,20 @@ void _switch(_Protect *p) {
 }
 
 void _map(_Protect *p, void *va, void *pa) {
+  PDE *pdir = (PDE *)(p->ptr);
+  uint32_t pdir_idx = PDX(va);
+  uint32_t ptab_idx = PTX(va);
+
+  if ((pdir[pdir_idx] & PTE_P) == 0) {
+    PTE *ptab = (PTE *)(palloc_f());
+    for (int i = 0; i < NR_PTE; i ++) {
+      ptab[i] = 0;
+    }
+    pdir[pdir_idx] = (uintptr_t)ptab | PTE_P;
+  }
+
+  PTE *ptab = (PTE *)(PTE_ADDR(pdir[pdir_idx]));
+  ptab[ptab_idx] = PTE_ADDR(pa) | PTE_P;
 }
 
 void _unmap(_Protect *p, void *va) {
