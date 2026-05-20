@@ -30,7 +30,7 @@ int main() {
 
   init_fs();
 
-  uintptr_t entry = loader(NULL, "/bin/dummy");
+  uintptr_t entry = loader(NULL, "/bin/text");
   ((void (*)(void))entry)();
 
   panic("Should not reach here");
