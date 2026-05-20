@@ -68,14 +68,14 @@ paddr_t page_translate(vaddr_t addr, bool is_write) {
 }
 
 uint32_t vaddr_read(vaddr_t addr, int len) {
-  if ((addr & PAGE_MASK) + len > PAGE_SIZE) {
+  if (cpu.cr0.paging && (addr & PAGE_MASK) + len > PAGE_SIZE) {
     assert(0);
   }
   return paddr_read(page_translate(addr, false), len);
 }
 
 void vaddr_write(vaddr_t addr, int len, uint32_t data) {
-  if ((addr & PAGE_MASK) + len > PAGE_SIZE) {
+  if (cpu.cr0.paging && (addr & PAGE_MASK) + len > PAGE_SIZE) {
     assert(0);
   }
   paddr_write(page_translate(addr, true), len, data);
