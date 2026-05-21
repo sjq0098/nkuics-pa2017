@@ -30,7 +30,7 @@ int main() {
 
   init_fs();
 
-  load_prog("/bin/dummy");
+  load_prog("/bin/videotest");
 
   panic("Should not reach here");
 }
