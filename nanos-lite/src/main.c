@@ -30,7 +30,9 @@ int main() {
 
   init_fs();
 
-  load_prog("/bin/pal");
+  load_prog("/bin/dummy");
+
+  _trap();
 
   panic("Should not reach here");
 }
