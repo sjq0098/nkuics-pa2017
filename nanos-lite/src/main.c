@@ -30,7 +30,8 @@ int main() {
 
   init_fs();
 
-  load_prog("/bin/dummy");
+  load_prog("/bin/pal");
+  load_prog("/bin/hello");
 
   _trap();
 
