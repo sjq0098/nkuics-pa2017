@@ -28,7 +28,8 @@ _RegSet* schedule(_RegSet *prev) {
     current->tf = prev;
   }
 
-  current = &pcb[0];
+  int next = (current == NULL) ? 0 : (current - pcb + 1) % nr_proc;
+  current = &pcb[next];
   _switch(&current->as);
   return current->tf;
 }
