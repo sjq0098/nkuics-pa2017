@@ -1,4 +1,5 @@
 #include "common.h"
+#include "proc.h"
 
 #define NAME(key) \
   [_KEY_##key] = #key,
@@ -17,8 +18,14 @@ size_t events_read(void *buf, size_t len) {
     if (key != _KEY_NONE) {
       int down = key & 0x8000;
       key &= ~0x8000;
-      snprintf(evbuf, sizeof(evbuf), "%s %s\n",
-               down ? "kd" : "ku", keyname[key]);
+      if (key == _KEY_F12 && down) {
+        /* F12：在 pal 和 videotest 之间切换前台，不把 F12 送入事件流 */
+        switch_fg();
+        snprintf(evbuf, sizeof(evbuf), "t %u\n", (unsigned)_uptime());
+      } else {
+        snprintf(evbuf, sizeof(evbuf), "%s %s\n",
+                 down ? "kd" : "ku", keyname[key]);
+      }
     } else {
       snprintf(evbuf, sizeof(evbuf), "t %u\n", (unsigned)_uptime());
     }

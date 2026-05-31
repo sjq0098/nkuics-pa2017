@@ -30,8 +30,9 @@ int main() {
 
   init_fs();
 
-  load_prog("/bin/pal");
-  load_prog("/bin/hello");
+  load_prog("/bin/pal");        /* pcb[0]：前台图形程序（初始） */
+  load_prog("/bin/hello");     /* pcb[1]：后台 console 程序 */
+  load_prog("/bin/videotest"); /* pcb[2]：备用前台图形程序 */
 
   _trap();
 
