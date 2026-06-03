@@ -68,6 +68,11 @@ int NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
 }
 
 int NDL_Render() {
+  /* --- measurement harness (NOT part of the optimization; kept in both builds) --- */
+  static int _frm = 0;
+  printf("[FRAME %d]\n", ++_frm);
+  fflush(stdout);
+  /* ------------------------------------------------------------------------------ */
   if (has_nwm) {
     fflush(stdout);
   } else {
