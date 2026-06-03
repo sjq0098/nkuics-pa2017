@@ -40,7 +40,7 @@ NEMU_EXEC := $(BINARY) $(ARGS)
 $(BINARY): $(OBJS)
 	$(call git_commit, "compile")
 	@echo + LD $@
-	@$(LD) -O2 -o $@ $^ -lSDL2 -lreadline
+	@$(LD) -O2 -pg -o $@ $^ -lSDL2 -lreadline
 
 run: $(BINARY)
 	$(call git_commit, "run")
