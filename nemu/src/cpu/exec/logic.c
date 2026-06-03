@@ -108,6 +108,30 @@ make_EHelper(not) {
   print_asm_template1(not);
 }
 
+make_EHelper(shld) {
+  /* SHLD dst, src2, count: dst = (dst << count) | (src2 >> (bits - count)) */
+  uint32_t count = id_src->val & 0x1f;
+  int bits = id_dest->width * 8;
+  if (count != 0) {
+    t0 = (id_dest->val << count) | (id_src2->val >> (bits - count));
+    operand_write(id_dest, &t0);
+    rtl_update_ZFSF(&t0, id_dest->width);
+  }
+  print_asm_template3(shld);
+}
+
+make_EHelper(shrd) {
+  /* SHRD dst, src2, count: dst = (dst >> count) | (src2 << (bits - count)) */
+  uint32_t count = id_src->val & 0x1f;
+  int bits = id_dest->width * 8;
+  if (count != 0) {
+    t0 = (id_dest->val >> count) | (id_src2->val << (bits - count));
+    operand_write(id_dest, &t0);
+    rtl_update_ZFSF(&t0, id_dest->width);
+  }
+  print_asm_template3(shrd);
+}
+
 make_EHelper(bsr) {
   if (id_src->val == 0) {
     t0 = 1;
