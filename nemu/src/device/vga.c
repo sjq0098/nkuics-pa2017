@@ -9,8 +9,8 @@
 #define VMEM 0x40000
 #define VGA_SYNC_PORT 0x100
 
-#define SCREEN_H 200
-#define SCREEN_W 320
+#define SCREEN_H 300
+#define SCREEN_W 400
 
 static SDL_Window *window;
 static SDL_Renderer *renderer;

@@ -7,8 +7,8 @@
 #define KBD_STATUS_HASKEY_MASK 0x1
 #define VGA_SYNC_PORT 0x100
 #define FB_ADDR 0x40000
-#define SCREEN_W 320
-#define SCREEN_H 200
+#define SCREEN_W 400
+#define SCREEN_H 300
 
 static unsigned long boot_time;
 

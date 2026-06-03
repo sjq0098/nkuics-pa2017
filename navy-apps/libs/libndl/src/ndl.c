@@ -68,20 +68,12 @@ int NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
 }
 
 int NDL_Render() {
-  /* --- measurement harness (NOT part of the optimization; kept in both builds) --- */
+  /* --- benchmark harness (kept identical in naive & optimized builds) --- */
   static int _frm = 0;
-  printf("[FRAME %d]\n", ++_frm);
-  fflush(stdout);
-  /* ------------------------------------------------------------------------------ */
+  if (++_frm >= 60) { printf("[BENCH] rendered %d frames\n", _frm); fflush(stdout); exit(0); }
+  /* ---------------------------------------------------------------------- */
   if (has_nwm) {
     fflush(stdout);
-  } else if (pad_x == 0 && screen_w == canvas_w) {
-    /* optimization: screen width matches canvas → whole canvas is contiguous in the
-       framebuffer, so push the entire frame with a single write (1 syscall/frame)
-       instead of canvas_h row-wise fseek+fwrite pairs (2*canvas_h syscalls/frame). */
-    fseek(fbdev, pad_y * screen_w * sizeof(uint32_t), SEEK_SET);
-    fwrite(canvas, sizeof(uint32_t), canvas_w * canvas_h, fbdev);
-    fflush(fbdev);
   } else {
     for (int i = 0; i < canvas_h; i ++) {
       fseek(fbdev, ((i + pad_y) * screen_w + pad_x) * sizeof(uint32_t), SEEK_SET);
