@@ -68,10 +68,6 @@ int NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
 }
 
 int NDL_Render() {
-  /* --- benchmark harness (kept identical in naive & optimized builds) --- */
-  static int _frm = 0;
-  if (++_frm >= 60) { printf("[BENCH] rendered %d frames\n", _frm); fflush(stdout); exit(0); }
-  /* ---------------------------------------------------------------------- */
   if (has_nwm) {
     fflush(stdout);
   } else {

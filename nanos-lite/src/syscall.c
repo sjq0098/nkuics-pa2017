@@ -4,8 +4,6 @@
 
 int mm_brk(uint32_t new_brk);
 
-static int nr_syscall = 0;   /* measurement harness: count syscalls (render benchmark) */
-
 _RegSet* do_syscall(_RegSet *r) {
   uintptr_t a[4];
   a[0] = SYSCALL_ARG1(r);
@@ -13,14 +11,11 @@ _RegSet* do_syscall(_RegSet *r) {
   a[2] = SYSCALL_ARG3(r);
   a[3] = SYSCALL_ARG4(r);
 
-  nr_syscall ++;
-
   switch (a[0]) {
     case SYS_none:
       r->eax = 1;
       break;
     case SYS_exit:
-      Log("[BENCH] total syscalls = %d", nr_syscall);
       _halt(a[1]);
       break;
     case SYS_open:
