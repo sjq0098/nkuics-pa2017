@@ -75,9 +75,14 @@ int NDL_Render() {
   if (has_nwm) {
     fflush(stdout);
   } else {
-    for (int i = 0; i < canvas_h; i ++) {
-      fseek(fbdev, ((i + pad_y) * screen_w + pad_x) * sizeof(uint32_t), SEEK_SET);
-      fwrite(&canvas[i * canvas_w], sizeof(uint32_t), canvas_w, fbdev);
+    if (pad_x == 0) {
+      fseek(fbdev, pad_y * screen_w * sizeof(uint32_t), SEEK_SET);
+      fwrite(canvas, sizeof(uint32_t), canvas_w * canvas_h, fbdev);
+    } else {
+      for (int i = 0; i < canvas_h; i ++) {
+        fseek(fbdev, ((i + pad_y) * screen_w + pad_x) * sizeof(uint32_t), SEEK_SET);
+        fwrite(&canvas[i * canvas_w], sizeof(uint32_t), canvas_w, fbdev);
+      }
     }
     fflush(fbdev);
   }
@@ -148,3 +153,4 @@ static void get_display_info() {
   fclose(dispinfo);
   assert(screen_w > 0 && screen_h > 0);
 }
+
