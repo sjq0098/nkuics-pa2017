@@ -12,7 +12,13 @@ include Makefile.git
 CC = gcc
 LD = gcc
 INCLUDES  = $(addprefix -I, $(INC_DIR))
-CFLAGS   += -O2 -MMD -Wall -Werror -ggdb $(INCLUDES) -pg
+# Set PROFILE=1 to build with gprof instrumentation (-pg must be in BOTH compile and link).
+PROFILE ?= 0
+ifeq ($(PROFILE), 1)
+PROF_FLAG = -pg
+endif
+
+CFLAGS   += -O2 -MMD -Wall -Werror -ggdb $(INCLUDES) $(PROF_FLAG)
 
 # Files to be compiled
 SRCS = $(shell find src/ -name "*.c")
@@ -40,7 +46,7 @@ NEMU_EXEC := $(BINARY) $(ARGS)
 $(BINARY): $(OBJS)
 	$(call git_commit, "compile")
 	@echo + LD $@
-	@$(LD) -O2 -pg -o $@ $^ -lSDL2 -lreadline
+	@$(LD) -O2 $(PROF_FLAG) -o $@ $^ -lSDL2 -lreadline
 
 run: $(BINARY)
 	$(call git_commit, "run")
