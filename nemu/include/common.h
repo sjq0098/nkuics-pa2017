@@ -4,6 +4,10 @@
 //#define DEBUG
 //#define DIFF_TEST
 
+/* PA5: enable JIT execution mode (TB dispatcher).  Comment out to fall back to
+ * the plain interpreter loop, which stays available as the correctness baseline. */
+#define JIT
+
 /* You will define this macro in PA2 */
 #define HAS_IOE
 
