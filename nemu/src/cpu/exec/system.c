@@ -18,7 +18,13 @@ make_EHelper(mov_r2cr) {
 
   switch (id_dest->reg) {
     case 0: cpu.cr0.val = id_src->val; break;
-    case 3: cpu.cr3.val = id_src->val; break;
+    case 3:
+#ifdef JIT
+      /* address-space switch: a newly loaded program may now occupy a cached
+       * guest eip with different code -- invalidate all translation blocks. */
+      if (cpu.cr3.val != id_src->val) { void tb_flush_all(void); tb_flush_all(); }
+#endif
+      cpu.cr3.val = id_src->val; break;
     default: assert(0);
   }
 

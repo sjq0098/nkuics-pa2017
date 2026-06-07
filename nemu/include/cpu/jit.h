@@ -17,9 +17,11 @@
 typedef struct TB {
   vaddr_t  guest_eip;    // key: basic-block start
   uint32_t n_insn;       // # of guest instructions (0 == not discovered yet)
-  uint32_t guest_size;   // bytes covered by the block (used by Stage 1 / flush)
+  uint32_t guest_size;   // # of guest code bytes covered by the block
+  uint8_t *code;         // Stage 1: cached copy of the block's guest code bytes
+                         //   (NULL == not captured; on a hit instr_fetch reads
+                         //    from here, skipping vaddr_read/page translation)
   struct TB *hash_next;  // chaining within a hash bucket
-  /* --- Stage 1 (decode cache) fields will be added here --- */
 } TB;
 
 /* JIT dispatcher main loop: runs up to n guest instructions, grouping them into

@@ -8,8 +8,27 @@ typedef void (*EHelper) (vaddr_t *);
 
 #include "cpu/decode.h"
 
+#ifdef JIT
+/* Stage 1 instruction-fetch redirection: while a translation block is being
+ * replayed, jit_code points at its cached guest bytes, so opcode/operand bytes
+ * are read from host memory instead of paying vaddr_read + page-translate on
+ * every execution.  Out-of-range fetches (e.g. an interrupt redirected eip out
+ * of the block) transparently fall back to vaddr_read. */
+extern const uint8_t *jit_code;
+extern vaddr_t        jit_code_base;
+extern uint32_t       jit_code_size;
+#endif
+
 static inline uint32_t instr_fetch(vaddr_t *eip, int len) {
-  uint32_t instr = vaddr_read(*eip, len);
+  uint32_t instr;
+#ifdef JIT
+  if (jit_code != NULL && *eip >= jit_code_base &&
+      (*eip - jit_code_base) + (uint32_t)len <= jit_code_size) {
+    instr = 0;
+    memcpy(&instr, jit_code + (*eip - jit_code_base), len);
+  } else
+#endif
+  instr = vaddr_read(*eip, len);
 #ifdef DEBUG
   uint8_t *p_instr = (void *)&instr;
   int i;
