@@ -59,7 +59,7 @@ paddr_t page_translate(vaddr_t addr, bool is_write) {
 #ifdef JIT
   uint32_t vpn = addr >> 12;
   uint32_t tlb_idx = vpn & (TLB_SIZE - 1);
-  if (tlb[tlb_idx].valid && tlb[tlb_idx].tag == vpn) {
+  if (!TLB_DISABLED && tlb[tlb_idx].valid && tlb[tlb_idx].tag == vpn) {
     return tlb[tlb_idx].ppbase | (addr & PAGE_MASK);
   }
 #endif
