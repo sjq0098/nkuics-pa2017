@@ -20,9 +20,13 @@ make_EHelper(mov_r2cr) {
     case 0: cpu.cr0.val = id_src->val; break;
     case 3:
 #ifdef JIT
-      /* address-space switch: a newly loaded program may now occupy a cached
-       * guest eip with different code -- invalidate all translation blocks. */
-      if (cpu.cr3.val != id_src->val) { void tb_flush_all(void); tb_flush_all(); }
+      /* address-space switch: invalidate translation blocks (a new program may
+       * occupy a cached guest eip with different code) and the software TLB
+       * (vpage->ppage mappings differ across address spaces). */
+      if (cpu.cr3.val != id_src->val) {
+        void tb_flush_all(void); tb_flush_all();
+        void tlb_flush(void);    tlb_flush();
+      }
 #endif
       cpu.cr3.val = id_src->val; break;
     default: assert(0);

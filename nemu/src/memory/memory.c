@@ -36,10 +36,33 @@ void paddr_write(paddr_t addr, int len, uint32_t data) {
   memcpy(guest_to_host(addr), &data, len);
 }
 
+#ifdef JIT
+/* Software TLB (part of the JIT fast-path engine): cache vpage -> ppage so a
+ * guest memory access skips the two-level page walk (4 paddr ops + is_mmio each)
+ * that otherwise dominates run time once paging is on.  Flushed on CR3 writes
+ * (address-space switch, see exec/system.c); within one address space nanos-lite
+ * only ever *adds* mappings, so cached entries never go stale. */
+#define TLB_SIZE (1u << 12)
+typedef struct { uint32_t tag; paddr_t ppbase; bool valid; } TLBEntry;
+static TLBEntry tlb[TLB_SIZE];
+
+void tlb_flush(void) {
+  for (uint32_t i = 0; i < TLB_SIZE; i ++) tlb[i].valid = false;
+}
+#endif
+
 paddr_t page_translate(vaddr_t addr, bool is_write) {
   if (cpu.cr0.paging == 0) {
     return addr;
   }
+
+#ifdef JIT
+  uint32_t vpn = addr >> 12;
+  uint32_t tlb_idx = vpn & (TLB_SIZE - 1);
+  if (tlb[tlb_idx].valid && tlb[tlb_idx].tag == vpn) {
+    return tlb[tlb_idx].ppbase | (addr & PAGE_MASK);
+  }
+#endif
 
   uint32_t pdir_idx = addr >> 22;
   uint32_t ptab_idx = (addr >> 12) & 0x3ff;
@@ -64,7 +87,13 @@ paddr_t page_translate(vaddr_t addr, bool is_write) {
   }
   paddr_write(pte_addr, 4, pte.val);
 
-  return (pte.val & ~PAGE_MASK) | offset;
+  paddr_t ppbase = pte.val & ~PAGE_MASK;
+#ifdef JIT
+  tlb[tlb_idx].tag = vpn;
+  tlb[tlb_idx].ppbase = ppbase;
+  tlb[tlb_idx].valid = true;
+#endif
+  return ppbase | offset;
 }
 
 uint32_t vaddr_read(vaddr_t addr, int len) {
