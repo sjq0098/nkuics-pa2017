@@ -9,7 +9,7 @@ const char *regsw[] = {"ax", "cx", "dx", "bx", "sp", "bp", "si", "di"};
 const char *regsb[] = {"al", "cl", "dl", "bl", "ah", "ch", "dh", "bh"};
 
 void reg_test() {
-  srand(1);  /* TEMP: fixed seed for deterministic JIT-vs-interp difftest */
+  srand(time(0));
   uint32_t sample[8];
   uint32_t eip_sample = rand();
   cpu.eip = eip_sample;
